@@ -1,12 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { carFormSchema, type CarFormValues } from "@/lib/validations";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
-import { Save, ArrowLeft } from "lucide-react";
+import { Save, ArrowLeft, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
 import {
@@ -70,37 +71,58 @@ export function CarForm({ initialData, onSubmit, isSubmitting, mode }: CarFormPr
     resolver: zodResolver(carFormSchema),
     defaultValues: initialData
       ? {
-          carId: initialData.carId || "",
-          name: initialData.name || "",
-          subtitle: initialData.subtitle || "",
-          status: initialData.status || "draft",
-          type: initialData.type || "",
-          heroImage: initialData.heroImage || "",
-          bannerImage: initialData.bannerImage || "",
-          collageImages: initialData.collageImages || [],
-          showcaseImages: initialData.showcaseImages || [],
-          videos: initialData.videos || [],
-          showcaseFeatures: initialData.showcaseFeatures || [],
-          exteriorColors: initialData.exteriorColors || [],
-          interiorColors: initialData.interiorColors || [],
-          specs: initialData.specs || [],
-          overview: initialData.overview || { heading: "", body: "" },
-          design: initialData.design || { title: "", features: [] },
-          technology: initialData.technology || { title: "", features: [] },
-          styling: initialData.styling || { title: "", subtitle: "" },
-          safety: initialData.safety || { features: [] },
-          storage: initialData.storage || { boot: "", expanded: "" },
-          models: initialData.models || [],
-          moreInfo: initialData.moreInfo || { handbook: "", testDrive: "" },
-          specifications: initialData.specifications || [],
-          features: initialData.features || [],
-        }
+        carId: initialData.carId || "",
+        name: initialData.name || "",
+        subtitle: initialData.subtitle || "",
+        status: initialData.status || "draft",
+        type: initialData.type || "",
+        heroImage: initialData.heroImage || "",
+        bannerImage: initialData.bannerImage || "",
+        collageImages: initialData.collageImages || [],
+        showcaseImages: initialData.showcaseImages || [],
+        videos: initialData.videos || [],
+        showcaseFeatures: initialData.showcaseFeatures || [],
+        exteriorColors: initialData.exteriorColors || [],
+        interiorColors: initialData.interiorColors || [],
+        specs: initialData.specs || [],
+        overview: initialData.overview || { heading: "", body: "" },
+        design: initialData.design || { title: "", features: [] },
+        technology: initialData.technology || { title: "", features: [] },
+        styling: initialData.styling || { title: "", subtitle: "" },
+        safety: initialData.safety || { features: [] },
+        storage: initialData.storage || { boot: "", expanded: "" },
+        models: initialData.models || [],
+        moreInfo: initialData.moreInfo || { handbook: "", testDrive: "" },
+        specifications: initialData.specifications || [],
+        features: initialData.features || [],
+      }
       : defaultValues,
   });
 
   const handleSubmit = form.handleSubmit(async (data) => {
     await onSubmit(data);
   });
+
+  const tabList = ["basic", "media", "colors", "specs", "content", "models", "extra"];
+  const [activeTab, setActiveTab] = useState("basic");
+
+  const currentIndex = tabList.indexOf(activeTab);
+  const isFirstTab = currentIndex === 0;
+  const isLastTab = currentIndex === tabList.length - 1;
+
+  const handleNext = () => {
+    if (!isLastTab) {
+      setActiveTab(tabList[currentIndex + 1]);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
+  const handlePrev = () => {
+    if (!isFirstTab) {
+      setActiveTab(tabList[currentIndex - 1]);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -123,21 +145,21 @@ export function CarForm({ initialData, onSubmit, isSubmitting, mode }: CarFormPr
             </p>
           </div>
         </div>
-        <Button type="submit" disabled={isSubmitting} className="gap-2">
+        {/* <button type="submit" disabled={isSubmitting} className="cms-btn cms-btn-primary">
           {isSubmitting ? (
             <>
               <Spinner size="sm" /> Saving...
             </>
           ) : (
             <>
-              <Save className="h-4 w-4" /> {mode === "create" ? "Create Car" : "Save Changes"}
+              <Save style={{ height: 16, width: 16, marginRight: 8 }} /> {mode === "create" ? "Create Car" : "Save Changes"}
             </>
           )}
-        </Button>
+        </button> */}
       </div>
 
       {/* Tabs */}
-      <Tabs defaultValue="basic" className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className="overflow-x-auto pb-2">
           <TabsList className="flex-wrap">
             <TabsTrigger value="basic">Basic</TabsTrigger>
@@ -198,19 +220,34 @@ export function CarForm({ initialData, onSubmit, isSubmitting, mode }: CarFormPr
         </TabsContent>
       </Tabs>
 
-      {/* Bottom Submit */}
-      <div className="flex justify-end pt-4 border-t border-white/[0.06]">
-        <Button type="submit" disabled={isSubmitting} className="gap-2">
-          {isSubmitting ? (
-            <>
-              <Spinner size="sm" /> Saving...
-            </>
-          ) : (
-            <>
-              <Save className="h-4 w-4" /> {mode === "create" ? "Create Car" : "Save Changes"}
-            </>
+      {/* Bottom Navigation */}
+      <div className="flex items-center justify-between pt-4 border-t border-white/[0.06]">
+        <div>
+          {!isFirstTab && (
+            <button type="button" onClick={handlePrev} className="cms-btn cms-btn-outline">
+              <ArrowLeft style={{ height: 16, width: 16, marginRight: 8 }} /> Previous
+            </button>
           )}
-        </Button>
+        </div>
+        <div>
+          {!isLastTab ? (
+            <button type="button" onClick={handleNext} className="cms-btn cms-btn-primary">
+              Next <ArrowRight style={{ height: 16, width: 16, marginLeft: 8 }} />
+            </button>
+          ) : (
+            <button type="submit" disabled={isSubmitting} className="cms-btn cms-btn-primary">
+              {isSubmitting ? (
+                <>
+                  <Spinner size="sm" /> Saving...
+                </>
+              ) : (
+                <>
+                  <Save style={{ height: 16, width: 16, marginRight: 8 }} /> {mode === "create" ? "Create Car" : "Save Changes"}
+                </>
+              )}
+            </button>
+          )}
+        </div>
       </div>
     </form>
   );
